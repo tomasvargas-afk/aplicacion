@@ -16,7 +16,7 @@ workflows:
           flutter packages pub get
       - name: Build unsigned iOS app
         script: |
-          flutter build ios --release --no-codesign -t lib/main_prod.dart --flavor ios-production
+          flutter build ios --release --no-codesign -t lib/main.dart
       - name: Package unsigned IPA
         script: |
           mkdir -p Payload
