@@ -1,0 +1,66 @@
+name: aplicacion
+description: "Asistente personal de gimnasio y nutricion."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # Backend
+  supabase_flutter: ^2.8.0
+
+  # State management
+  flutter_riverpod: ^2.6.1
+
+  # Routing
+  go_router: ^15.1.2
+
+  # Immutable models / serialization
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+
+  # Functional error handling
+  fpdart: ^1.1.1
+
+  # Charts & calendar
+  fl_chart: ^0.70.2
+  table_calendar: ^3.1.3
+
+  # Notifications
+  flutter_local_notifications: ^18.0.1
+  timezone: ^0.9.4
+  permission_handler: ^11.3.1
+
+  # Formatting / i18n
+  intl: ^0.20.2
+
+  # Media & storage
+  image_picker: ^1.1.2
+  cached_network_image: ^3.4.1
+
+  # Local persistence & config
+  shared_preferences: ^2.3.5
+  flutter_dotenv: ^5.2.1
+  uuid: ^4.5.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^3.0.0
+  build_runner: ^2.4.13
+  freezed: ^2.5.7
+  json_serializable: ^6.9.0
+  mocktail: ^1.0.4
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - .env
