@@ -11,6 +11,7 @@ workflows:
         script: |
           echo "SUPABASE_URL=$SUPABASE_URL" > .env
           echo "SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" >> .env
+          cat .env
       - name: Get Flutter packages
         script: |
           flutter packages pub get
