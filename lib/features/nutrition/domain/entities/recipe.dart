@@ -17,6 +17,7 @@ abstract class Recipe with _$Recipe {
     @JsonKey(name: 'fat_g') @Default(0) double fatG,
     @JsonKey(name: 'image_url') String? imageUrl,
     @JsonKey(name: 'is_favorite') @Default(false) bool isFavorite,
+    String? barcode,
   }) = _Recipe;
 
   factory Recipe.fromJson(Map<String, dynamic> json) => _$RecipeFromJson(json);

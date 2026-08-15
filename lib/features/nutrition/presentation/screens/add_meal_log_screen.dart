@@ -7,8 +7,12 @@ import '../../../../core/utils/validators.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../domain/entities/ai_food_estimate.dart';
+import '../../domain/entities/barcode_food_result.dart';
 import '../../domain/entities/meal_log.dart';
 import '../providers/nutrition_provider.dart';
+import 'ai_food_scan_screen.dart';
+import 'barcode_scanner_screen.dart';
 
 class AddMealLogScreen extends ConsumerStatefulWidget {
   const AddMealLogScreen({
@@ -57,6 +61,34 @@ class _AddMealLogScreenState extends ConsumerState<AddMealLogScreen> {
 
   double _num(TextEditingController c) => double.tryParse(c.text.replaceAll(',', '.')) ?? 0;
 
+  Future<void> _scanBarcode() async {
+    final result = await Navigator.of(context).push<BarcodeFoodResult>(
+      MaterialPageRoute(builder: (_) => const BarcodeScannerScreen()),
+    );
+    if (result == null || !mounted) return;
+    setState(() {
+      _nameController.text = result.name;
+      _caloriesController.text = result.calories.toStringAsFixed(0);
+      _proteinController.text = result.proteinG.toStringAsFixed(0);
+      _carbsController.text = result.carbsG.toStringAsFixed(0);
+      _fatController.text = result.fatG.toStringAsFixed(0);
+    });
+  }
+
+  Future<void> _scanPhoto() async {
+    final result = await Navigator.of(context).push<AiFoodEstimate>(
+      MaterialPageRoute(builder: (_) => const AiFoodScanScreen()),
+    );
+    if (result == null || !mounted) return;
+    setState(() {
+      _nameController.text = result.name;
+      _caloriesController.text = result.calories.toStringAsFixed(0);
+      _proteinController.text = result.proteinG.toStringAsFixed(0);
+      _carbsController.text = result.carbsG.toStringAsFixed(0);
+      _fatController.text = result.fatG.toStringAsFixed(0);
+    });
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     final user = ref.read(currentUserProvider);
@@ -87,7 +119,21 @@ class _AddMealLogScreenState extends ConsumerState<AddMealLogScreen> {
     final isLoading = ref.watch(nutritionControllerProvider).isLoading;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Registrar comida')),
+      appBar: AppBar(
+        title: const Text('Registrar comida'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.camera_alt_outlined),
+            tooltip: 'Foto de comida (IA)',
+            onPressed: _scanPhoto,
+          ),
+          IconButton(
+            icon: const Icon(Icons.qr_code_scanner),
+            tooltip: 'Escanear código de barras',
+            onPressed: _scanBarcode,
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Form(
           key: _formKey,

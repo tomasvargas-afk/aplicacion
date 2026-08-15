@@ -7,8 +7,10 @@ import '../../../../core/utils/validators.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../domain/entities/barcode_food_result.dart';
 import '../../domain/entities/recipe.dart';
 import '../providers/nutrition_provider.dart';
+import 'barcode_scanner_screen.dart';
 
 class RecipeFormScreen extends ConsumerStatefulWidget {
   const RecipeFormScreen({super.key, this.recipe});
@@ -35,6 +37,13 @@ class _RecipeFormScreenState extends ConsumerState<RecipeFormScreen> {
   late final _fatController =
       TextEditingController(text: widget.recipe?.fatG.toStringAsFixed(0) ?? '');
   late bool _isFavorite = widget.recipe?.isFavorite ?? false;
+  String? _barcode;
+
+  @override
+  void initState() {
+    super.initState();
+    _barcode = widget.recipe?.barcode;
+  }
 
   @override
   void dispose() {
@@ -49,6 +58,21 @@ class _RecipeFormScreenState extends ConsumerState<RecipeFormScreen> {
   }
 
   double _num(TextEditingController c) => double.tryParse(c.text.replaceAll(',', '.')) ?? 0;
+
+  Future<void> _scanBarcode() async {
+    final result = await Navigator.of(context).push<BarcodeFoodResult>(
+      MaterialPageRoute(builder: (_) => const BarcodeScannerScreen()),
+    );
+    if (result == null || !mounted) return;
+    setState(() {
+      _barcode = result.barcode;
+      _nameController.text = result.name;
+      _caloriesController.text = result.calories.toStringAsFixed(0);
+      _proteinController.text = result.proteinG.toStringAsFixed(0);
+      _carbsController.text = result.carbsG.toStringAsFixed(0);
+      _fatController.text = result.fatG.toStringAsFixed(0);
+    });
+  }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
@@ -71,6 +95,7 @@ class _RecipeFormScreenState extends ConsumerState<RecipeFormScreen> {
       carbsG: _num(_carbsController),
       fatG: _num(_fatController),
       isFavorite: _isFavorite,
+      barcode: _barcode,
     );
 
     final error = await ref.read(nutritionControllerProvider.notifier).saveRecipe(recipe);
@@ -90,6 +115,11 @@ class _RecipeFormScreenState extends ConsumerState<RecipeFormScreen> {
       appBar: AppBar(
         title: Text(widget.recipe == null ? 'Nueva receta' : 'Editar receta'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.qr_code_scanner),
+            tooltip: 'Escanear código de barras',
+            onPressed: _scanBarcode,
+          ),
           IconButton(
             icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_border),
             onPressed: () => setState(() => _isFavorite = !_isFavorite),

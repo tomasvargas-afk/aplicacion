@@ -4,7 +4,9 @@ import '../../../../core/error/failures.dart';
 import '../../../../core/network/supabase_client_provider.dart';
 import '../../../../core/utils/date_utils.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../data/datasources/ai_food_datasource.dart';
 import '../../data/datasources/nutrition_remote_datasource.dart';
+import '../../data/datasources/open_food_facts_datasource.dart';
 import '../../data/repositories/nutrition_repository_impl.dart';
 import '../../domain/entities/meal_log.dart';
 import '../../domain/entities/recipe.dart';
@@ -12,6 +14,14 @@ import '../../domain/repositories/nutrition_repository.dart';
 
 final nutritionRemoteDatasourceProvider = Provider<NutritionRemoteDatasource>((ref) {
   return NutritionRemoteDatasource(ref.watch(supabaseClientProvider));
+});
+
+final openFoodFactsDatasourceProvider = Provider<OpenFoodFactsDatasource>((ref) {
+  return OpenFoodFactsDatasource();
+});
+
+final aiFoodDatasourceProvider = Provider<AiFoodDatasource>((ref) {
+  return AiFoodDatasource(ref.watch(supabaseClientProvider));
 });
 
 final nutritionRepositoryProvider = Provider<NutritionRepository>((ref) {

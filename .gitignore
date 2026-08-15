@@ -6,9 +6,14 @@
 .pub-cache/
 .pub/
 build/
+*.g.dart
+*.freezed.dart
 
 # Secrets
 .env
+
+# Supabase CLI
+supabase/.temp/
 
 # IDE
 .idea/
@@ -31,4 +36,3 @@ ios/Flutter/Flutter.podspec
 
 # Web
 web/*.js.map
-.env
