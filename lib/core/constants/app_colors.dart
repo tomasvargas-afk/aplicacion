@@ -9,6 +9,7 @@ abstract class AppColors {
   // Brand
   static const Color seed = Color(0xFF10B981); // emerald
   static const Color seedDark = Color(0xFF34D399);
+  static const Color seedDeep = Color(0xFF059669); // for gradients
 
   // Semantic
   static const Color success = Color(0xFF22C55E);

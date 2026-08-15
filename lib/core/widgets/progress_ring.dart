@@ -35,15 +35,21 @@ class ProgressRing extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          SizedBox(
-            width: size,
-            height: size,
-            child: CircularProgressIndicator(
-              value: clamped,
-              strokeWidth: strokeWidth,
-              strokeCap: StrokeCap.round,
-              backgroundColor: backgroundColor ?? scheme.surfaceContainerHighest,
-              valueColor: AlwaysStoppedAnimation(ringColor),
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: clamped),
+            duration: const Duration(milliseconds: 900),
+            curve: Curves.easeOutCubic,
+            builder: (context, value, _) => SizedBox(
+              width: size,
+              height: size,
+              child: CircularProgressIndicator(
+                value: value,
+                strokeWidth: strokeWidth,
+                strokeCap: StrokeCap.round,
+                backgroundColor:
+                    backgroundColor ?? scheme.surfaceContainerHighest,
+                valueColor: AlwaysStoppedAnimation(ringColor),
+              ),
             ),
           ),
           Column(

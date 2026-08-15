@@ -23,8 +23,22 @@ class IconBadge extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.14),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            color.withValues(alpha: 0.24),
+            color.withValues(alpha: 0.10)
+          ],
+        ),
         borderRadius: BorderRadius.circular(AppSizes.radiusSm + 2),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.18),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Icon(icon, color: color, size: size * 0.5),
     );
