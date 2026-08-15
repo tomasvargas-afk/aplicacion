@@ -22,8 +22,8 @@ dependencies:
   go_router: ^15.1.2
 
   # Immutable models / serialization
-  freezed_annotation: ^2.4.4
-  json_annotation: ^4.9.0
+  freezed_annotation: ^3.1.0
+  json_annotation: ^4.12.0
 
   # Functional error handling
   fpdart: ^1.1.1
@@ -56,9 +56,9 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^6.0.0
-  build_runner: ^2.4.14
-  freezed: ^2.5.7
-  json_serializable: ^6.9.0
+  build_runner: ^2.16.0
+  freezed: ^3.2.5
+  json_serializable: ^6.14.1
   mocktail: ^1.0.4
 
 flutter:
