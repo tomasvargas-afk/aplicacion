@@ -9,6 +9,10 @@ abstract class Env {
 
   static String get supabaseAnonKey => dotenv.get('SUPABASE_ANON_KEY');
 
+  /// Empty when not configured — Sentry reporting is optional, unlike
+  /// Supabase which the app can't run without.
+  static String get sentryDsn => dotenv.maybeGet('SENTRY_DSN') ?? '';
+
   static bool get isConfigured =>
       dotenv.maybeGet('SUPABASE_URL')?.startsWith('http') == true &&
       (dotenv.maybeGet('SUPABASE_ANON_KEY')?.isNotEmpty ?? false) &&

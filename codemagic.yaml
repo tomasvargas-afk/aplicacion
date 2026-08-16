@@ -6,6 +6,7 @@ workflows:
       vars:
         SUPABASE_URL: "https://frhemthvgbkjuthaoacx.supabase.co"
         SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyaGVtdGh2Z2JranV0aGFvYWN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MTk3OTcsImV4cCI6MjEwMjM5NTc5N30.XPq3w-BzMkwg7IzhbmCr2MAjoN0lYYbrpFeaa9Awz1k"
+        SENTRY_DSN: "https://e5fbd833a5ca60c64cb70235a8f59e06@o4511923106611200.ingest.us.sentry.io/4511923151765504"
       flutter: stable
       xcode: latest
       cocoapods: default
@@ -14,7 +15,7 @@ workflows:
         script: |
           echo "SUPABASE_URL=$SUPABASE_URL" > .env
           echo "SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" >> .env
-          cat .env
+          echo "SENTRY_DSN=$SENTRY_DSN" >> .env
       - name: Get Flutter packages
         script: |
           flutter packages pub get
