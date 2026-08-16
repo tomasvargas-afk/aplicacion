@@ -52,6 +52,7 @@ dependencies:
   http: ^1.6.0
   pedometer: ^4.2.0
   local_auth: ^3.0.2
+  flutter_secure_storage: ^11.0.0
 
 dev_dependencies:
   flutter_test:

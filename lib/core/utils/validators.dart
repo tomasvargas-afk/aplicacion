@@ -25,7 +25,7 @@ abstract class Validators {
   static String? password(String? value) {
     final requiredError = required(value);
     if (requiredError != null) return requiredError;
-    if (value!.length < 6) {
+    if (value!.length < 8) {
       return AppStrings.passwordTooShort;
     }
     return null;

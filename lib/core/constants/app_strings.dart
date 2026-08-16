@@ -23,6 +23,7 @@ abstract class AppStrings {
   // Validation
   static const requiredField = 'Este campo es obligatorio';
   static const invalidEmail = 'Correo electrónico inválido';
-  static const passwordTooShort = 'La contraseña debe tener al menos 6 caracteres';
+  static const passwordTooShort =
+      'La contraseña debe tener al menos 8 caracteres';
   static const passwordsDoNotMatch = 'Las contraseñas no coinciden';
 }
