@@ -32,6 +32,8 @@
 	<string>Necesitamos acceso a la cámara para escanear códigos de barras y fotos de comida.</string>
 	<key>NSMotionUsageDescription</key>
 	<string>Necesitamos acceso al sensor de movimiento para contar tus pasos diarios.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Usamos Face ID para proteger el acceso a tu información de salud.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
