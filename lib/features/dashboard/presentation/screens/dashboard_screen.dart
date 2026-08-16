@@ -51,6 +51,11 @@ class DashboardScreen extends ConsumerWidget {
 
     final nextReminder = ref.watch(nextReminderProvider);
 
+    final stepsPermission =
+        ref.watch(stepsPermissionProvider).valueOrNull ?? false;
+    final stepsToday = ref.watch(stepsTodayProvider).valueOrNull ?? 0;
+    final stepsGoal = ref.watch(stepsGoalProvider);
+
     final goals = ref.watch(goalsProvider).valueOrNull ?? const [];
     final activeGoals =
         goals.where((g) => g.status == 'active').take(3).toList();
@@ -209,6 +214,41 @@ class DashboardScreen extends ConsumerWidget {
                               calorieTarget != null
                                   ? 'kcal restantes'
                                   : 'genera tu plan',
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppSizes.sm),
+                    Expanded(
+                      child: AppCard(
+                        onTap: stepsPermission
+                            ? null
+                            : () => ref
+                                .read(
+                                    stepsPermissionControllerProvider.notifier)
+                                .request(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const IconBadge(
+                              icon: Icons.directions_walk,
+                              color: AppColors.steps,
+                              size: 36,
+                            ),
+                            const SizedBox(height: AppSizes.xs),
+                            Text(
+                              stepsPermission ? '$stepsToday' : '—',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 18,
+                              ),
+                            ),
+                            Text(
+                              stepsPermission
+                                  ? 'de $stepsGoal pasos'
+                                  : 'activar pasos',
                               style: const TextStyle(fontSize: 12),
                             ),
                           ],

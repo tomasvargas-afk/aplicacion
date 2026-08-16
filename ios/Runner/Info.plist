@@ -30,6 +30,8 @@
 	<string>Necesitamos acceso a tus fotos para que puedas elegir una foto de perfil.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Necesitamos acceso a la cámara para escanear códigos de barras y fotos de comida.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Necesitamos acceso al sensor de movimiento para contar tus pasos diarios.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

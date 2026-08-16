@@ -27,6 +27,7 @@ abstract class AppColors {
   static const Color water = Color(0xFF0EA5E9);
   static const Color sleep = Color(0xFF8B5CF6);
   static const Color workout = Color(0xFFF97316);
+  static const Color steps = Color(0xFF06B6D4);
 
   // Neutral surfaces
   static const Color lightBackground = Color(0xFFF7F8FA);
