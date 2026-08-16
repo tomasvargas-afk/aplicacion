@@ -108,7 +108,7 @@ Deno.serve(async (req: Request) => {
     const client = new Anthropic({ apiKey });
 
     const message = await client.messages.create({
-      model: "claude-haiku-4-5",
+      model: "claude-sonnet-5",
       max_tokens: 1024,
       messages: [
         {
@@ -119,8 +119,12 @@ Deno.serve(async (req: Request) => {
               type: "text",
               text:
                 "Identifica el plato o alimento principal de esta foto y estima sus calorías y " +
-                "macronutrientes totales para la porción que se ve en la imagen. Da tu mejor " +
-                "estimación aunque no sea exacta.",
+                "macronutrientes totales para la porción visible. Antes de estimar, fíjate en " +
+                "pistas de tamaño en la imagen (tamaño del plato/envase, cubiertos, comparación " +
+                "con la mano u otros objetos de referencia) para calcular la porción con la mayor " +
+                "precisión posible. Si hay varios componentes distintos en el plato (por ejemplo " +
+                "proteína, carbohidrato, vegetales, salsas), considera cada uno por separado antes " +
+                "de sumar el total. Da tu mejor estimación aunque no sea exacta.",
             },
           ],
         },
