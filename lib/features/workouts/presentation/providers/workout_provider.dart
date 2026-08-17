@@ -13,7 +13,8 @@ import '../../domain/entities/workout_log.dart';
 import '../../domain/entities/workout_schedule.dart';
 import '../../domain/repositories/workout_repository.dart';
 
-final workoutRemoteDatasourceProvider = Provider<WorkoutRemoteDatasource>((ref) {
+final workoutRemoteDatasourceProvider =
+    Provider<WorkoutRemoteDatasource>((ref) {
   return WorkoutRemoteDatasource(ref.watch(supabaseClientProvider));
 });
 
@@ -21,19 +22,23 @@ final workoutRepositoryProvider = Provider<WorkoutRepository>((ref) {
   return WorkoutRepositoryImpl(ref.watch(workoutRemoteDatasourceProvider));
 });
 
-final exerciseLibraryProvider = FutureProvider.autoDispose<List<Exercise>>((ref) async {
-  final result = await ref.watch(workoutRepositoryProvider).getExerciseLibrary();
+final exerciseLibraryProvider =
+    FutureProvider.autoDispose<List<Exercise>>((ref) async {
+  final result =
+      await ref.watch(workoutRepositoryProvider).getExerciseLibrary();
   return result.match((failure) => throw failure, (list) => list);
 });
 
 final workoutsProvider = FutureProvider.autoDispose<List<Workout>>((ref) async {
   final user = ref.watch(currentUserProvider);
   if (user == null) return const [];
-  final result = await ref.watch(workoutRepositoryProvider).getWorkouts(user.id);
+  final result =
+      await ref.watch(workoutRepositoryProvider).getWorkouts(user.id);
   return result.match((failure) => throw failure, (list) => list);
 });
 
-final workoutLogsProvider = FutureProvider.autoDispose<List<WorkoutLog>>((ref) async {
+final workoutLogsProvider =
+    FutureProvider.autoDispose<List<WorkoutLog>>((ref) async {
   final user = ref.watch(currentUserProvider);
   if (user == null) return const [];
   final result = await ref.watch(workoutRepositoryProvider).getLogs(user.id);
@@ -42,7 +47,8 @@ final workoutLogsProvider = FutureProvider.autoDispose<List<WorkoutLog>>((ref) a
 
 /// Schedule window: a month back (so recently-passed entries stay visible
 /// on the calendar) through 6 months ahead (covers the weekly-repeat option).
-final workoutScheduleProvider = FutureProvider.autoDispose<List<WorkoutSchedule>>((ref) async {
+final workoutScheduleProvider =
+    FutureProvider.autoDispose<List<WorkoutSchedule>>((ref) async {
   final user = ref.watch(currentUserProvider);
   if (user == null) return const [];
   final now = DateTime.now();
@@ -58,9 +64,29 @@ class WorkoutController extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
+  /// Creates a user-authored exercise (`is_custom = true`) so it shows up
+  /// alongside the shared library. Returns the created exercise, or null +
+  /// an error message on failure.
+  Future<(Exercise?, String?)> createCustomExercise(String name) async {
+    final user = ref.read(currentUserProvider);
+    if (user == null) return (null, 'No hay sesión activa');
+
+    final result = await ref
+        .read(workoutRepositoryProvider)
+        .createCustomExercise(Exercise(name: name, isCustom: true), user.id);
+    return result.match(
+      (failure) => (null, failure.displayMessage),
+      (exercise) {
+        ref.invalidate(exerciseLibraryProvider);
+        return (exercise, null);
+      },
+    );
+  }
+
   Future<String?> saveWorkout(Workout workout) async {
     state = const AsyncLoading();
-    final result = await ref.read(workoutRepositoryProvider).saveWorkout(workout);
+    final result =
+        await ref.read(workoutRepositoryProvider).saveWorkout(workout);
     state = const AsyncData(null);
     return result.match(
       (failure) => failure.displayMessage,
@@ -101,7 +127,8 @@ class WorkoutController extends AsyncNotifier<void> {
   /// trained (matches the "Llevas 5 días seguidos entrenando" example from
   /// the original brief) — checked right after logging a completion.
   Future<void> _maybeCelebrateStreak(String userId) async {
-    final logsResult = await ref.read(workoutRepositoryProvider).getLogs(userId);
+    final logsResult =
+        await ref.read(workoutRepositoryProvider).getLogs(userId);
     final logs = logsResult.match((_) => const <WorkoutLog>[], (list) => list);
     final streak = calculateStreak(logs);
     if (streak > 0 && streak % 5 == 0) {
@@ -115,7 +142,8 @@ class WorkoutController extends AsyncNotifier<void> {
 
   Future<String?> scheduleWorkout(List<WorkoutSchedule> entries) async {
     state = const AsyncLoading();
-    final result = await ref.read(workoutRepositoryProvider).scheduleWorkout(entries);
+    final result =
+        await ref.read(workoutRepositoryProvider).scheduleWorkout(entries);
     state = const AsyncData(null);
     return result.match(
       (failure) => failure.displayMessage,
@@ -127,7 +155,8 @@ class WorkoutController extends AsyncNotifier<void> {
   }
 
   Future<String?> deleteScheduleEntry(String id) async {
-    final result = await ref.read(workoutRepositoryProvider).deleteScheduleEntry(id);
+    final result =
+        await ref.read(workoutRepositoryProvider).deleteScheduleEntry(id);
     return result.match(
       (failure) => failure.displayMessage,
       (_) {
@@ -138,7 +167,9 @@ class WorkoutController extends AsyncNotifier<void> {
   }
 
   Future<String?> updateScheduleStatus(String id, String status) async {
-    final result = await ref.read(workoutRepositoryProvider).updateScheduleStatus(id, status);
+    final result = await ref
+        .read(workoutRepositoryProvider)
+        .updateScheduleStatus(id, status);
     return result.match(
       (failure) => failure.displayMessage,
       (_) {
@@ -149,6 +180,7 @@ class WorkoutController extends AsyncNotifier<void> {
   }
 }
 
-final workoutControllerProvider = AsyncNotifierProvider<WorkoutController, void>(
+final workoutControllerProvider =
+    AsyncNotifierProvider<WorkoutController, void>(
   WorkoutController.new,
 );

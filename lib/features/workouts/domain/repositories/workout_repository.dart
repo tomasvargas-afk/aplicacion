@@ -9,6 +9,9 @@ import '../entities/workout_schedule.dart';
 abstract class WorkoutRepository {
   Future<Either<Failure, List<Exercise>>> getExerciseLibrary();
 
+  Future<Either<Failure, Exercise>> createCustomExercise(
+      Exercise exercise, String userId);
+
   Future<Either<Failure, List<Workout>>> getWorkouts(String userId);
 
   Future<Either<Failure, Workout>> saveWorkout(Workout workout);
@@ -17,7 +20,8 @@ abstract class WorkoutRepository {
 
   Future<Either<Failure, WorkoutLog>> logCompletion(WorkoutLog log);
 
-  Future<Either<Failure, List<WorkoutLog>>> getLogs(String userId, {int days = 90});
+  Future<Either<Failure, List<WorkoutLog>>> getLogs(String userId,
+      {int days = 90});
 
   Future<Either<Failure, List<WorkoutSchedule>>> getSchedule(
     String userId, {
@@ -31,5 +35,6 @@ abstract class WorkoutRepository {
 
   Future<Either<Failure, Unit>> deleteScheduleEntry(String id);
 
-  Future<Either<Failure, WorkoutSchedule>> updateScheduleStatus(String id, String status);
+  Future<Either<Failure, WorkoutSchedule>> updateScheduleStatus(
+      String id, String status);
 }

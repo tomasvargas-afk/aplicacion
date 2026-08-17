@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_sizes.dart';
+import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/loading_indicator.dart';
@@ -14,11 +15,54 @@ class ExercisePickerScreen extends ConsumerStatefulWidget {
   const ExercisePickerScreen({super.key});
 
   @override
-  ConsumerState<ExercisePickerScreen> createState() => _ExercisePickerScreenState();
+  ConsumerState<ExercisePickerScreen> createState() =>
+      _ExercisePickerScreenState();
 }
 
 class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
   String _query = '';
+  bool _isCreating = false;
+
+  Future<void> _createCustomExercise({String initialName = ''}) async {
+    final controller = TextEditingController(text: initialName);
+    final name = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Crear ejercicio'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: const InputDecoration(labelText: 'Nombre del ejercicio'),
+          onSubmitted: (value) => Navigator.of(context).pop(value.trim()),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
+            child: const Text('Crear'),
+          ),
+        ],
+      ),
+    );
+    if (name == null || name.isEmpty) return;
+
+    setState(() => _isCreating = true);
+    final (exercise, error) = await ref
+        .read(workoutControllerProvider.notifier)
+        .createCustomExercise(name);
+    if (!mounted) return;
+    setState(() => _isCreating = false);
+
+    if (error != null) {
+      context.showSnackBar(error, isError: true);
+      return;
+    }
+    Navigator.of(context).pop(exercise);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +85,8 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
                 hintText: 'Buscar ejercicio...',
                 prefixIcon: Icon(Icons.search),
               ),
-              onChanged: (value) => setState(() => _query = value.toLowerCase()),
+              onChanged: (value) =>
+                  setState(() => _query = value.toLowerCase()),
             ),
           ),
         ),
@@ -54,12 +99,16 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
         data: (exercises) {
           final filtered = _query.isEmpty
               ? exercises
-              : exercises.where((e) => e.name.toLowerCase().contains(_query)).toList();
+              : exercises
+                  .where((e) => e.name.toLowerCase().contains(_query))
+                  .toList();
 
           if (filtered.isEmpty) {
-            return const EmptyState(
+            return EmptyState(
               icon: Icons.search_off,
               message: 'No se encontraron ejercicios',
+              actionLabel: 'Crear ejercicio',
+              onAction: () => _createCustomExercise(initialName: _query),
             );
           }
 
@@ -80,6 +129,17 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
             },
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _isCreating ? null : () => _createCustomExercise(),
+        icon: _isCreating
+            ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Icon(Icons.add),
+        label: const Text('Nuevo ejercicio'),
       ),
     );
   }

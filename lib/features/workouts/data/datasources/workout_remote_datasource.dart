@@ -15,9 +15,29 @@ class WorkoutRemoteDatasource {
 
   Future<List<Exercise>> getExerciseLibrary() async {
     try {
-      final rows =
-          await _client.from(SupabaseTables.exercisesLibrary).select().order('name');
+      final rows = await _client
+          .from(SupabaseTables.exercisesLibrary)
+          .select()
+          .order('name');
       return rows.map((row) => Exercise.fromJson(row)).toList();
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
+  }
+
+  Future<Exercise> createCustomExercise(Exercise exercise,
+      {required String userId}) async {
+    try {
+      final payload = exercise.toJson()
+        ..removeWhere((key, value) => value == null)
+        ..['is_custom'] = true
+        ..['created_by'] = userId;
+      final row = await _client
+          .from(SupabaseTables.exercisesLibrary)
+          .insert(payload)
+          .select()
+          .single();
+      return Exercise.fromJson(row);
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -50,7 +70,8 @@ class WorkoutRemoteDatasource {
       if (workout.exercises.isNotEmpty) {
         final exercisesPayload = workout.exercises.asMap().entries.map((entry) {
           final exercise = entry.value;
-          final json = exercise.toJson()..removeWhere((key, value) => value == null);
+          final json = exercise.toJson()
+            ..removeWhere((key, value) => value == null);
           json['workout_id'] = savedWorkout.id;
           json['order_index'] = entry.key;
           return json;
@@ -61,7 +82,9 @@ class WorkoutRemoteDatasource {
             .insert(exercisesPayload)
             .select('*, exercises_library(*)');
         return savedWorkout.copyWith(
-          exercises: savedExerciseRows.map((row) => WorkoutExercise.fromJson(row)).toList(),
+          exercises: savedExerciseRows
+              .map((row) => WorkoutExercise.fromJson(row))
+              .toList(),
         );
       }
       return savedWorkout;
@@ -133,7 +156,8 @@ class WorkoutRemoteDatasource {
     }
   }
 
-  Future<List<WorkoutSchedule>> scheduleWorkout(List<WorkoutSchedule> entries) async {
+  Future<List<WorkoutSchedule>> scheduleWorkout(
+      List<WorkoutSchedule> entries) async {
     try {
       final payload = entries.map((entry) {
         final json = entry.toJson()..removeWhere((key, value) => value == null);

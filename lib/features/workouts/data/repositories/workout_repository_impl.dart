@@ -26,6 +26,21 @@ class WorkoutRepositoryImpl implements WorkoutRepository {
   }
 
   @override
+  Future<Either<Failure, Exercise>> createCustomExercise(
+    Exercise exercise,
+    String userId,
+  ) async {
+    try {
+      return Right(
+          await _remote.createCustomExercise(exercise, userId: userId));
+    } on ServerException catch (e) {
+      return Left(Failure.server(e.message));
+    } catch (e) {
+      return Left(Failure.unknown(e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, List<Workout>>> getWorkouts(String userId) async {
     try {
       return Right(await _remote.getWorkouts(userId));
@@ -71,7 +86,8 @@ class WorkoutRepositoryImpl implements WorkoutRepository {
   }
 
   @override
-  Future<Either<Failure, List<WorkoutLog>>> getLogs(String userId, {int days = 90}) async {
+  Future<Either<Failure, List<WorkoutLog>>> getLogs(String userId,
+      {int days = 90}) async {
     try {
       return Right(await _remote.getLogs(userId, days: days));
     } on ServerException catch (e) {
