@@ -1,4 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
@@ -18,7 +19,11 @@ class NotificationService {
     if (_initialized) return;
 
     tz_data.initializeTimeZones();
-    tz.setLocalLocation(tz.getLocation(tz.local.name));
+    // `tz.local` defaults to UTC until explicitly set — reading it before
+    // setting it (as this used to do) is a no-op that silently leaves every
+    // scheduled notification in UTC instead of the device's real timezone.
+    final deviceTimezone = await FlutterTimezone.getLocalTimezone();
+    tz.setLocalLocation(tz.getLocation(deviceTimezone.identifier));
 
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosInit = DarwinInitializationSettings(
@@ -57,7 +62,8 @@ class NotificationService {
           android: AndroidNotificationDetails(
             'reminders_channel',
             'Recordatorios',
-            channelDescription: 'Recordatorios de salud, entrenamiento y nutrición',
+            channelDescription:
+                'Recordatorios de salud, entrenamiento y nutrición',
             importance: Importance.high,
             priority: Priority.high,
           ),
@@ -100,7 +106,8 @@ class NotificationService {
 
   /// Fires immediately — used for one-off celebratory notifications (e.g.
   /// hitting a streak milestone) rather than a scheduled reminder.
-  Future<void> showNow({required int id, required String title, required String body}) async {
+  Future<void> showNow(
+      {required int id, required String title, required String body}) async {
     await initialize();
     await _plugin.show(
       id,
@@ -141,7 +148,8 @@ class NotificationService {
       hour,
       minute,
     );
-    while (scheduled.weekday != weekday || scheduled.isBefore(tz.TZDateTime.now(tz.local))) {
+    while (scheduled.weekday != weekday ||
+        scheduled.isBefore(tz.TZDateTime.now(tz.local))) {
       scheduled = scheduled.add(const Duration(days: 1));
     }
     return scheduled;
