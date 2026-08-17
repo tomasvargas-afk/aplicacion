@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-/// Uses Google's official TEST ad unit IDs — swap these for your real
-/// AdMob ad unit IDs before publishing (see AdMob console > Ad units).
+// Android has no AdMob app registered yet — swap this test ID for a real
+// one once you create an Android app/ad unit in the AdMob console.
 const _androidTestAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
-const _iosTestAdUnitId = 'ca-app-pub-3940256099942544/2934735716';
+const _iosAdUnitId = 'ca-app-pub-4675467873120546/8769054339';
 
 /// A banner ad that loads itself and collapses to nothing while loading or
 /// if the ad request fails, so it never leaves a broken-looking gap.
@@ -21,7 +21,7 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
   BannerAd? _bannerAd;
 
   static String get _adUnitId =>
-      Platform.isAndroid ? _androidTestAdUnitId : _iosTestAdUnitId;
+      Platform.isAndroid ? _androidTestAdUnitId : _iosAdUnitId;
 
   @override
   void initState() {

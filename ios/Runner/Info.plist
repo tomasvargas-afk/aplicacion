@@ -35,7 +35,7 @@
 	<key>NSFaceIDUsageDescription</key>
 	<string>Usamos Face ID para proteger el acceso a tu información de salud.</string>
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-3940256099942544~1458002754</string>
+	<string>ca-app-pub-4675467873120546~1632800349</string>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>Usamos este identificador para mostrarte anuncios más relevantes.</string>
 	<key>UIApplicationSceneManifest</key>
