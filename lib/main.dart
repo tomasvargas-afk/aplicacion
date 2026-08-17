@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -13,6 +14,7 @@ Future<void> main() async {
   await dotenv.load(fileName: '.env');
   await initializeDateFormatting('es');
   await SupabaseConfig.initialize();
+  await MobileAds.instance.initialize();
 
   await SentryFlutter.init(
     (options) {
