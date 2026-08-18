@@ -30,6 +30,31 @@ class StorageService {
   Future<void> deleteImage({required String bucket, required String path}) {
     return _client.storage.from(bucket).remove([path]);
   }
+
+  /// Uploads to a private bucket and returns the storage *path* (not a
+  /// public URL) — use [getSignedUrl] to display it.
+  Future<String> uploadPrivateImage({
+    required String bucket,
+    required String userId,
+    required File file,
+    required String fileName,
+  }) async {
+    final path = '$userId/$fileName';
+    await _client.storage.from(bucket).upload(
+          path,
+          file,
+          fileOptions: const FileOptions(upsert: true),
+        );
+    return path;
+  }
+
+  Future<String> getSignedUrl({
+    required String bucket,
+    required String path,
+    int expiresInSeconds = 3600,
+  }) {
+    return _client.storage.from(bucket).createSignedUrl(path, expiresInSeconds);
+  }
 }
 
 final storageServiceProvider = Provider<StorageService>((ref) {

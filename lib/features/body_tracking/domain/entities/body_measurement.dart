@@ -20,6 +20,7 @@ abstract class BodyMeasurement with _$BodyMeasurement {
     @JsonKey(name: 'hip_cm') double? hipCm,
     @JsonKey(name: 'arm_cm') double? armCm,
     @JsonKey(name: 'thigh_cm') double? thighCm,
+    @JsonKey(name: 'photo_path') String? photoPath,
     String? notes,
   }) = _BodyMeasurement;
 

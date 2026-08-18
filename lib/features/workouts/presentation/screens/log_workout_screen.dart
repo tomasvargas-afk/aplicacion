@@ -12,6 +12,7 @@ import '../../domain/entities/workout_log.dart';
 import '../../domain/entities/workout_log_set.dart';
 import '../../domain/usecases/workout_calorie_calculator.dart';
 import '../providers/workout_provider.dart';
+import '../widgets/rest_timer_sheet.dart';
 
 class _SetControllers {
   _SetControllers({required String reps, required String weight})
@@ -174,9 +175,28 @@ class _LogWorkoutScreenState extends ConsumerState<LogWorkoutScreen> {
                 child: ExpansionTile(
                   initiallyExpanded: true,
                   tilePadding: EdgeInsets.zero,
-                  title: Text(
-                    exercise.exercise?.name ?? 'Ejercicio',
-                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  title: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          exercise.exercise?.name ?? 'Ejercicio',
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                      TextButton.icon(
+                        onPressed: () => RestTimerSheet.show(
+                          context,
+                          exercise.restSeconds,
+                        ),
+                        icon: const Icon(Icons.timer_outlined, size: 16),
+                        label: Text('${exercise.restSeconds}s'),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: const Size(0, 32),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                      ),
+                    ],
                   ),
                   children: [
                     AppCard(

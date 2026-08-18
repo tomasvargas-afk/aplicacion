@@ -28,4 +28,5 @@ abstract class SupabaseBuckets {
 
   static const avatars = 'avatars';
   static const recipeImages = 'recipe-images';
+  static const progressPhotos = 'progress-photos';
 }

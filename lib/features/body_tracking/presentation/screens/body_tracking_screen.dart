@@ -19,7 +19,8 @@ import '../widgets/measurement_line_chart.dart';
 import 'add_measurement_screen.dart';
 
 class _Metric {
-  const _Metric(this.label, this.unit, this.color, this.selector, {this.isWeight = false});
+  const _Metric(this.label, this.unit, this.color, this.selector,
+      {this.isWeight = false});
   final String label;
   final String unit;
   final Color color;
@@ -71,7 +72,8 @@ class _BodyTrackingScreenState extends ConsumerState<BodyTrackingScreen> {
           if (history.isEmpty) {
             return const EmptyState(
               icon: Icons.monitor_weight_outlined,
-              message: 'Aún no has registrado mediciones.\nToca "Registrar" para empezar',
+              message:
+                  'Aún no has registrado mediciones.\nToca "Registrar" para empezar',
             );
           }
 
@@ -88,7 +90,8 @@ class _BodyTrackingScreenState extends ConsumerState<BodyTrackingScreen> {
           final latestValue = displaySelector(latest);
 
           return RefreshIndicator(
-            onRefresh: () async => ref.invalidate(bodyMeasurementHistoryProvider),
+            onRefresh: () async =>
+                ref.invalidate(bodyMeasurementHistoryProvider),
             child: ListView(
               padding: const EdgeInsets.all(AppSizes.md),
               children: [
@@ -104,7 +107,8 @@ class _BodyTrackingScreenState extends ConsumerState<BodyTrackingScreen> {
                 ),
                 const SizedBox(height: AppSizes.md),
                 ChartCard(
-                  title: '${metric.label} • ${latestValue != null ? '${latestValue.toStringAsFixed(1)} $displayUnit' : 'sin datos'}',
+                  title:
+                      '${metric.label} • ${latestValue != null ? '${latestValue.toStringAsFixed(1)} $displayUnit' : 'sin datos'}',
                   height: 220,
                   child: MeasurementLineChart(
                     measurements: history,
@@ -116,7 +120,8 @@ class _BodyTrackingScreenState extends ConsumerState<BodyTrackingScreen> {
                 const SizedBox(height: AppSizes.lg),
                 Text('Historial', style: context.textTheme.titleMedium),
                 const SizedBox(height: AppSizes.sm),
-                ...history.reversed.map((m) => _HistoryTile(measurement: m, useLb: useLb)),
+                ...history.reversed
+                    .map((m) => _HistoryTile(measurement: m, useLb: useLb)),
                 const SizedBox(height: AppSizes.xxl),
               ],
             ),
@@ -142,14 +147,47 @@ class _HistoryTile extends ConsumerWidget {
         '${measurement.bodyFatPercent!.toStringAsFixed(1)}% grasa',
       if (measurement.muscleMassPercent != null)
         '${measurement.muscleMassPercent!.toStringAsFixed(1)}% músculo',
-      if (measurement.waistCm != null) 'Cintura ${measurement.waistCm!.toStringAsFixed(0)}cm',
+      if (measurement.waistCm != null)
+        'Cintura ${measurement.waistCm!.toStringAsFixed(0)}cm',
     ];
+
+    final photoUrlAsync =
+        ref.watch(progressPhotoUrlProvider(measurement.photoPath));
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSizes.sm),
       child: AppCard(
         child: Row(
           children: [
+            if (measurement.photoPath != null) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(AppSizes.radiusSm),
+                child: photoUrlAsync.when(
+                  data: (url) => url == null
+                      ? const SizedBox(width: 48, height: 48)
+                      : Image.network(
+                          url,
+                          width: 48,
+                          height: 48,
+                          fit: BoxFit.cover,
+                        ),
+                  loading: () => const SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: Center(
+                      child: SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                  ),
+                  error: (error, stackTrace) =>
+                      const SizedBox(width: 48, height: 48),
+                ),
+              ),
+              const SizedBox(width: AppSizes.md),
+            ],
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

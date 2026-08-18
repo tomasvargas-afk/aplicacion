@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/constants/supabase_tables.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/network/supabase_client_provider.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../core/services/storage_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/datasources/body_tracking_remote_datasource.dart';
 import '../../data/repositories/body_tracking_repository_impl.dart';
@@ -19,15 +21,30 @@ final bodyTrackingRemoteDatasourceProvider =
 });
 
 final bodyTrackingRepositoryProvider = Provider<BodyTrackingRepository>((ref) {
-  return BodyTrackingRepositoryImpl(ref.watch(bodyTrackingRemoteDatasourceProvider));
+  return BodyTrackingRepositoryImpl(
+      ref.watch(bodyTrackingRemoteDatasourceProvider));
 });
 
 final bodyMeasurementHistoryProvider =
     FutureProvider.autoDispose<List<BodyMeasurement>>((ref) async {
   final user = ref.watch(currentUserProvider);
   if (user == null) return const [];
-  final result = await ref.watch(bodyTrackingRepositoryProvider).getHistory(user.id);
+  final result =
+      await ref.watch(bodyTrackingRepositoryProvider).getHistory(user.id);
   return result.match((failure) => throw failure, (list) => list);
+});
+
+/// Progress photos live in a private bucket, so the UI needs a freshly
+/// signed URL to display one (never a stored/public URL).
+final progressPhotoUrlProvider =
+    FutureProvider.autoDispose.family<String?, String?>((
+  ref,
+  path,
+) async {
+  if (path == null) return null;
+  return ref
+      .watch(storageServiceProvider)
+      .getSignedUrl(bucket: SupabaseTables.progressPhotos, path: path);
 });
 
 class BodyTrackingController extends AsyncNotifier<void> {
@@ -36,8 +53,9 @@ class BodyTrackingController extends AsyncNotifier<void> {
 
   Future<String?> addMeasurement(BodyMeasurement measurement) async {
     state = const AsyncLoading();
-    final result =
-        await ref.read(bodyTrackingRepositoryProvider).addMeasurement(measurement);
+    final result = await ref
+        .read(bodyTrackingRepositoryProvider)
+        .addMeasurement(measurement);
     state = const AsyncData(null);
     return result.match(
       (failure) => failure.displayMessage,
@@ -64,7 +82,8 @@ class BodyTrackingController extends AsyncNotifier<void> {
   }
 
   Future<String?> deleteMeasurement(String id) async {
-    final result = await ref.read(bodyTrackingRepositoryProvider).deleteMeasurement(id);
+    final result =
+        await ref.read(bodyTrackingRepositoryProvider).deleteMeasurement(id);
     return result.match(
       (failure) => failure.displayMessage,
       (_) {
