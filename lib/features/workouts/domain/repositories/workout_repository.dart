@@ -4,6 +4,7 @@ import '../../../../core/error/failures.dart';
 import '../entities/exercise.dart';
 import '../entities/workout.dart';
 import '../entities/workout_log.dart';
+import '../entities/workout_log_set.dart';
 import '../entities/workout_schedule.dart';
 
 abstract class WorkoutRepository {
@@ -18,7 +19,15 @@ abstract class WorkoutRepository {
 
   Future<Either<Failure, Unit>> deleteWorkout(String id);
 
-  Future<Either<Failure, WorkoutLog>> logCompletion(WorkoutLog log);
+  Future<Either<Failure, WorkoutLog>> logCompletion(
+    WorkoutLog log, {
+    List<WorkoutLogSet> sets = const [],
+  });
+
+  Future<Either<Failure, List<WorkoutLogSet>>> getRecentSetsForExercise(
+    String userId,
+    String exerciseId,
+  );
 
   Future<Either<Failure, List<WorkoutLog>>> getLogs(String userId,
       {int days = 90});

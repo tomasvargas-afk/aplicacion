@@ -1,16 +1,19 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/network/supabase_client_provider.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/utils/date_utils.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../statistics/presentation/providers/progress_summary_provider.dart';
+import '../../data/datasources/ai_progression_datasource.dart';
 import '../../data/datasources/workout_remote_datasource.dart';
 import '../../data/repositories/workout_repository_impl.dart';
 import '../../domain/entities/exercise.dart';
 import '../../domain/entities/workout.dart';
 import '../../domain/entities/workout_log.dart';
+import '../../domain/entities/workout_log_set.dart';
 import '../../domain/entities/workout_schedule.dart';
 import '../../domain/repositories/workout_repository.dart';
 
@@ -22,6 +25,57 @@ final workoutRemoteDatasourceProvider =
 final workoutRepositoryProvider = Provider<WorkoutRepository>((ref) {
   return WorkoutRepositoryImpl(ref.watch(workoutRemoteDatasourceProvider));
 });
+
+final aiProgressionDatasourceProvider = Provider<AiProgressionDatasource>((
+  ref,
+) {
+  return AiProgressionDatasource(ref.watch(supabaseClientProvider));
+});
+
+class ProgressionSuggestionController
+    extends AsyncNotifier<ProgressionSuggestion?> {
+  @override
+  ProgressionSuggestion? build() => null;
+
+  Future<(ProgressionSuggestion?, String?)> fetch({
+    required String exerciseId,
+    required String exerciseName,
+  }) async {
+    state = const AsyncLoading();
+    final user = ref.read(currentUserProvider);
+    if (user == null) {
+      state = const AsyncData(null);
+      return (null, 'No hay sesión activa');
+    }
+
+    final setsResult = await ref
+        .read(workoutRepositoryProvider)
+        .getRecentSetsForExercise(user.id, exerciseId);
+    final sets = setsResult.match((failure) => null, (list) => list);
+    if (sets == null || sets.isEmpty) {
+      state = const AsyncData(null);
+      return (
+        null,
+        'Todavía no tienes historial registrado para este ejercicio'
+      );
+    }
+
+    try {
+      final suggestion = await ref
+          .read(aiProgressionDatasourceProvider)
+          .suggest(exerciseName: exerciseName, recentSets: sets);
+      state = AsyncData(suggestion);
+      return (suggestion, null);
+    } on ServerException catch (e) {
+      state = const AsyncData(null);
+      return (null, e.message);
+    }
+  }
+}
+
+final progressionSuggestionControllerProvider = AsyncNotifierProvider<
+    ProgressionSuggestionController,
+    ProgressionSuggestion?>(ProgressionSuggestionController.new);
 
 final exerciseLibraryProvider =
     FutureProvider.autoDispose<List<Exercise>>((ref) async {
@@ -124,9 +178,14 @@ class WorkoutController extends AsyncNotifier<void> {
     );
   }
 
-  Future<String?> logCompletion(WorkoutLog log) async {
+  Future<String?> logCompletion(
+    WorkoutLog log, {
+    List<WorkoutLogSet> sets = const [],
+  }) async {
     state = const AsyncLoading();
-    final result = await ref.read(workoutRepositoryProvider).logCompletion(log);
+    final result = await ref
+        .read(workoutRepositoryProvider)
+        .logCompletion(log, sets: sets);
     state = const AsyncData(null);
 
     final failure = result.match((f) => f, (_) => null);

@@ -5,90 +5,15 @@ import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/widgets/confirm_dialog.dart';
 import '../../../../core/widgets/empty_state.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../../body_tracking/presentation/providers/body_tracking_provider.dart';
 import '../../domain/entities/workout.dart';
-import '../../domain/entities/workout_log.dart';
-import '../../domain/usecases/workout_calorie_calculator.dart';
 import '../providers/workout_provider.dart';
 import '../widgets/exercise_tile.dart';
+import 'log_workout_screen.dart';
 
 class WorkoutDetailScreen extends ConsumerWidget {
   const WorkoutDetailScreen({super.key, required this.workout});
 
   final Workout workout;
-
-  Future<void> _markCompleted(BuildContext context, WidgetRef ref) async {
-    final durationController = TextEditingController();
-    final duration = await showDialog<int?>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('¡Rutina completada! 💪'),
-        content: TextField(
-          controller: durationController,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: 'Duración (minutos, opcional)',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(
-              int.tryParse(durationController.text) ?? 0,
-            ),
-            child: const Text('Guardar'),
-          ),
-        ],
-      ),
-    );
-    if (duration == null) return;
-
-    final user = ref.read(currentUserProvider);
-    if (user == null || workout.id == null) return;
-
-    double? caloriesBurned;
-    if (duration > 0) {
-      final measurements =
-          ref.read(bodyMeasurementHistoryProvider).valueOrNull ?? const [];
-      double? weightKg;
-      for (final m in measurements.reversed) {
-        if (m.weightKg != null) {
-          weightKg = m.weightKg;
-          break;
-        }
-      }
-      if (weightKg != null) {
-        caloriesBurned = WorkoutCalorieCalculator.estimate(
-          durationMinutes: duration,
-          weightKg: weightKg,
-        );
-      }
-    }
-
-    final error =
-        await ref.read(workoutControllerProvider.notifier).logCompletion(
-              WorkoutLog(
-                userId: user.id,
-                workoutId: workout.id!,
-                durationMinutes: duration > 0 ? duration : null,
-                caloriesBurned: caloriesBurned,
-              ),
-            );
-    if (!context.mounted) return;
-    if (error != null) {
-      context.showSnackBar(error, isError: true);
-    } else if (caloriesBurned != null) {
-      context.showSnackBar(
-        '¡Buen trabajo! ~${caloriesBurned.round()} kcal quemadas 🔥',
-      );
-    } else {
-      context.showSnackBar('¡Buen trabajo! Racha actualizada 🔥');
-    }
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -115,7 +40,9 @@ class WorkoutDetailScreen extends ConsumerWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _markCompleted(context, ref),
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => LogWorkoutScreen(workout: workout)),
+        ),
         icon: const Icon(Icons.check),
         label: const Text('Marcar completada'),
       ),

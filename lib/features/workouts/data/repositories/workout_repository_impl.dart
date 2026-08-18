@@ -5,6 +5,7 @@ import '../../../../core/error/failures.dart';
 import '../../domain/entities/exercise.dart';
 import '../../domain/entities/workout.dart';
 import '../../domain/entities/workout_log.dart';
+import '../../domain/entities/workout_log_set.dart';
 import '../../domain/entities/workout_schedule.dart';
 import '../../domain/repositories/workout_repository.dart';
 import '../datasources/workout_remote_datasource.dart';
@@ -75,9 +76,26 @@ class WorkoutRepositoryImpl implements WorkoutRepository {
   }
 
   @override
-  Future<Either<Failure, WorkoutLog>> logCompletion(WorkoutLog log) async {
+  Future<Either<Failure, WorkoutLog>> logCompletion(
+    WorkoutLog log, {
+    List<WorkoutLogSet> sets = const [],
+  }) async {
     try {
-      return Right(await _remote.logCompletion(log));
+      return Right(await _remote.logCompletion(log, sets: sets));
+    } on ServerException catch (e) {
+      return Left(Failure.server(e.message));
+    } catch (e) {
+      return Left(Failure.unknown(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<WorkoutLogSet>>> getRecentSetsForExercise(
+    String userId,
+    String exerciseId,
+  ) async {
+    try {
+      return Right(await _remote.getRecentSetsForExercise(userId, exerciseId));
     } on ServerException catch (e) {
       return Left(Failure.server(e.message));
     } catch (e) {

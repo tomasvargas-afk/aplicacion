@@ -6,6 +6,7 @@ import '../../domain/entities/exercise.dart';
 import '../../domain/entities/workout.dart';
 import '../../domain/entities/workout_exercise.dart';
 import '../../domain/entities/workout_log.dart';
+import '../../domain/entities/workout_log_set.dart';
 import '../../domain/entities/workout_schedule.dart';
 
 class WorkoutRemoteDatasource {
@@ -101,7 +102,10 @@ class WorkoutRemoteDatasource {
     }
   }
 
-  Future<WorkoutLog> logCompletion(WorkoutLog log) async {
+  Future<WorkoutLog> logCompletion(
+    WorkoutLog log, {
+    List<WorkoutLogSet> sets = const [],
+  }) async {
     try {
       final payload = log.toJson()..removeWhere((key, value) => value == null);
       final row = await _client
@@ -109,7 +113,40 @@ class WorkoutRemoteDatasource {
           .insert(payload)
           .select()
           .single();
-      return WorkoutLog.fromJson(row);
+      final savedLog = WorkoutLog.fromJson(row);
+
+      if (sets.isNotEmpty) {
+        final setsPayload = sets.map((s) {
+          final json = s.toJson()..removeWhere((key, value) => value == null);
+          json['workout_log_id'] = savedLog.id;
+          return json;
+        }).toList();
+        await _client.from(SupabaseTables.workoutLogSets).insert(setsPayload);
+      }
+
+      return savedLog;
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
+  }
+
+  /// Recent sets for one exercise, newest workout first — the history an
+  /// AI progression suggestion is built from.
+  Future<List<WorkoutLogSet>> getRecentSetsForExercise(
+    String userId,
+    String exerciseId, {
+    int limit = 30,
+  }) async {
+    try {
+      final rows = await _client
+          .from(SupabaseTables.workoutLogSets)
+          .select('*, workout_logs!inner(user_id, completed_at)')
+          .eq('exercise_id', exerciseId)
+          .eq('workout_logs.user_id', userId)
+          .order('completed_at',
+              referencedTable: 'workout_logs', ascending: false)
+          .limit(limit);
+      return rows.map((row) => WorkoutLogSet.fromJson(row)).toList();
     } catch (e) {
       throw ServerException(e.toString());
     }
