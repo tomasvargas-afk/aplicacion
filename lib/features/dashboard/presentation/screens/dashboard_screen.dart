@@ -38,6 +38,7 @@ class DashboardScreen extends ConsumerWidget {
           AppDateUtils.isSameDay(l.completedAt!, DateTime.now()),
     );
     final suggestedWorkout = workouts.isEmpty ? null : workouts.first;
+    final caloriesBurnedToday = ref.watch(todayCaloriesBurnedProvider);
 
     final todayCalories = ref.watch(todayCaloriesProvider).valueOrNull ?? 0;
     final dietPlans =
@@ -112,7 +113,9 @@ class DashboardScreen extends ConsumerWidget {
                           ),
                           Text(
                             trainedToday
-                                ? 'Sigue así 💪'
+                                ? (caloriesBurnedToday > 0
+                                    ? '~${caloriesBurnedToday.round()} kcal quemadas hoy 💪'
+                                    : 'Sigue así 💪')
                                 : (suggestedWorkout?.name ??
                                     'Crea tu primera rutina'),
                           ),

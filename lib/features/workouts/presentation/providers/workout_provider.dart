@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/network/supabase_client_provider.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../core/utils/date_utils.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../statistics/presentation/providers/progress_summary_provider.dart';
 import '../../data/datasources/workout_remote_datasource.dart';
@@ -43,6 +44,19 @@ final workoutLogsProvider =
   if (user == null) return const [];
   final result = await ref.watch(workoutRepositoryProvider).getLogs(user.id);
   return result.match((failure) => throw failure, (list) => list);
+});
+
+/// Total estimated calories burned across all workouts completed today.
+final todayCaloriesBurnedProvider = Provider.autoDispose<double>((ref) {
+  final logs = ref.watch(workoutLogsProvider).valueOrNull ?? const [];
+  final today = DateTime.now();
+  return logs
+      .where(
+        (l) =>
+            l.completedAt != null &&
+            AppDateUtils.isSameDay(l.completedAt!, today),
+      )
+      .fold(0.0, (sum, l) => sum + (l.caloriesBurned ?? 0));
 });
 
 /// Schedule window: a month back (so recently-passed entries stay visible

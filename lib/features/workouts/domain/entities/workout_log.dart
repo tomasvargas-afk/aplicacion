@@ -11,8 +11,10 @@ abstract class WorkoutLog with _$WorkoutLog {
     @JsonKey(name: 'workout_id') required String workoutId,
     @JsonKey(name: 'completed_at') DateTime? completedAt,
     @JsonKey(name: 'duration_minutes') int? durationMinutes,
+    @JsonKey(name: 'calories_burned') double? caloriesBurned,
     String? notes,
   }) = _WorkoutLog;
 
-  factory WorkoutLog.fromJson(Map<String, dynamic> json) => _$WorkoutLogFromJson(json);
+  factory WorkoutLog.fromJson(Map<String, dynamic> json) =>
+      _$WorkoutLogFromJson(json);
 }

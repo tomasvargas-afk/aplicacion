@@ -6,8 +6,10 @@ import '../../../../core/extensions/context_extensions.dart';
 import '../../../../core/widgets/confirm_dialog.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../body_tracking/presentation/providers/body_tracking_provider.dart';
 import '../../domain/entities/workout.dart';
 import '../../domain/entities/workout_log.dart';
+import '../../domain/usecases/workout_calorie_calculator.dart';
 import '../providers/workout_provider.dart';
 import '../widgets/exercise_tile.dart';
 
@@ -48,16 +50,41 @@ class WorkoutDetailScreen extends ConsumerWidget {
     final user = ref.read(currentUserProvider);
     if (user == null || workout.id == null) return;
 
-    final error = await ref.read(workoutControllerProvider.notifier).logCompletion(
-          WorkoutLog(
-            userId: user.id,
-            workoutId: workout.id!,
-            durationMinutes: duration > 0 ? duration : null,
-          ),
+    double? caloriesBurned;
+    if (duration > 0) {
+      final measurements =
+          ref.read(bodyMeasurementHistoryProvider).valueOrNull ?? const [];
+      double? weightKg;
+      for (final m in measurements.reversed) {
+        if (m.weightKg != null) {
+          weightKg = m.weightKg;
+          break;
+        }
+      }
+      if (weightKg != null) {
+        caloriesBurned = WorkoutCalorieCalculator.estimate(
+          durationMinutes: duration,
+          weightKg: weightKg,
         );
+      }
+    }
+
+    final error =
+        await ref.read(workoutControllerProvider.notifier).logCompletion(
+              WorkoutLog(
+                userId: user.id,
+                workoutId: workout.id!,
+                durationMinutes: duration > 0 ? duration : null,
+                caloriesBurned: caloriesBurned,
+              ),
+            );
     if (!context.mounted) return;
     if (error != null) {
       context.showSnackBar(error, isError: true);
+    } else if (caloriesBurned != null) {
+      context.showSnackBar(
+        '¡Buen trabajo! ~${caloriesBurned.round()} kcal quemadas 🔥',
+      );
     } else {
       context.showSnackBar('¡Buen trabajo! Racha actualizada 🔥');
     }
@@ -78,7 +105,9 @@ class WorkoutDetailScreen extends ConsumerWidget {
                 message: '¿Seguro que quieres eliminar "${workout.name}"?',
               );
               if (confirmed && workout.id != null) {
-                await ref.read(workoutControllerProvider.notifier).deleteWorkout(workout.id!);
+                await ref
+                    .read(workoutControllerProvider.notifier)
+                    .deleteWorkout(workout.id!);
                 if (context.mounted) Navigator.of(context).pop();
               }
             },
@@ -100,7 +129,8 @@ class WorkoutDetailScreen extends ConsumerWidget {
                 Chip(label: Text(workout.type.workoutTypeLabel)),
               ],
             ),
-            if (workout.description != null && workout.description!.isNotEmpty) ...[
+            if (workout.description != null &&
+                workout.description!.isNotEmpty) ...[
               const SizedBox(height: AppSizes.sm),
               Text(workout.description!, style: context.textTheme.bodyMedium),
             ],
