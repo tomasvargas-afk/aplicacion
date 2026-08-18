@@ -126,7 +126,7 @@ class _AddMeasurementScreenState extends ConsumerState<AddMeasurementScreen> {
       setState(() => _isUploadingPhoto = true);
       try {
         photoPath = await ref.read(storageServiceProvider).uploadPrivateImage(
-              bucket: SupabaseTables.progressPhotos,
+              bucket: SupabaseBuckets.progressPhotos,
               userId: user.id,
               file: photo,
               fileName: 'progress_${DateTime.now().millisecondsSinceEpoch}.jpg',

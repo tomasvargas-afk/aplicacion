@@ -44,7 +44,7 @@ final progressPhotoUrlProvider =
   if (path == null) return null;
   return ref
       .watch(storageServiceProvider)
-      .getSignedUrl(bucket: SupabaseTables.progressPhotos, path: path);
+      .getSignedUrl(bucket: SupabaseBuckets.progressPhotos, path: path);
 });
 
 class BodyTrackingController extends AsyncNotifier<void> {
