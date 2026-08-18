@@ -3,9 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/context_extensions.dart';
+import '../../../../core/network/supabase_client_provider.dart';
+import '../../../../core/onboarding/onboarding_answers_provider.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import '../../../../core/widgets/primary_button.dart';
+import '../../../body_tracking/domain/entities/body_measurement.dart';
+import '../../../body_tracking/presentation/providers/body_tracking_provider.dart';
+import '../../../diet_generator/domain/usecases/diet_calculator.dart';
+import '../../../profile/domain/entities/profile.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 import '../providers/auth_provider.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -33,17 +40,53 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    final name = _nameController.text.trim();
     final error = await ref.read(authControllerProvider.notifier).signUp(
           email: _emailController.text.trim(),
           password: _passwordController.text,
-          fullName: _nameController.text.trim(),
+          fullName: name,
         );
     if (!mounted) return;
     if (error != null) {
       context.showSnackBar(error, isError: true);
-    } else {
-      context.showSnackBar('Cuenta creada. ¡Bienvenido!');
+      return;
     }
+
+    await _applyOnboardingAnswers(name);
+    if (!mounted) return;
+    context.showSnackBar('Cuenta creada. ¡Bienvenido!');
+  }
+
+  /// If the user went through the questionnaire-style onboarding before
+  /// registering, pre-fills the profile and logs the starting weight so
+  /// they land on a dashboard that already reflects their plan.
+  Future<void> _applyOnboardingAnswers(String fullName) async {
+    final answers = ref.read(onboardingAnswersProvider);
+    if (!answers.isComplete) return;
+
+    final userId = ref.read(supabaseClientProvider).auth.currentUser?.id;
+    if (userId == null) return;
+
+    await ref.read(profileControllerProvider.notifier).updateProfile(
+          Profile(
+            id: userId,
+            fullName: fullName,
+            sex: answers.sex == Sex.male ? 'male' : 'female',
+            heightCm: answers.heightCm,
+            activityLevel: answers.activityLevel!.dbValue,
+            goal: answers.goal!.dbValue,
+          ),
+        );
+
+    await ref.read(bodyTrackingControllerProvider.notifier).addMeasurement(
+          BodyMeasurement(
+            userId: userId,
+            measuredAt: DateTime.now(),
+            weightKg: answers.weightKg,
+          ),
+        );
+
+    ref.read(onboardingAnswersProvider.notifier).clear();
   }
 
   @override
@@ -94,7 +137,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       label: 'Confirmar contraseña',
                       obscureText: true,
                       prefixIcon: Icons.lock_outline,
-                      validator: Validators.matches(() => _passwordController.text),
+                      validator:
+                          Validators.matches(() => _passwordController.text),
                       textInputAction: TextInputAction.done,
                     ),
                     const SizedBox(height: AppSizes.lg),
