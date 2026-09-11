@@ -67,11 +67,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final userId = ref.read(supabaseClientProvider).auth.currentUser?.id;
     if (userId == null) return;
 
+    // Approximate birth date from the age they entered — the diet
+    // generator form pre-fills age from this later (see ProfileAge.age).
+    final approxBirthDate = DateTime.now().copyWith(
+      year: DateTime.now().year - answers.age!,
+    );
+
     await ref.read(profileControllerProvider.notifier).updateProfile(
           Profile(
             id: userId,
             fullName: fullName,
             sex: answers.sex == Sex.male ? 'male' : 'female',
+            birthDate: approxBirthDate,
             heightCm: answers.heightCm,
             activityLevel: answers.activityLevel!.dbValue,
             goal: answers.goal!.dbValue,

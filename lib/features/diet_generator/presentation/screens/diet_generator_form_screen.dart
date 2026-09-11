@@ -8,6 +8,9 @@ import '../../../../core/units/unit_preference_provider.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import '../../../../core/widgets/primary_button.dart';
+import '../../../body_tracking/presentation/providers/body_tracking_provider.dart';
+import '../../../profile/domain/entities/profile.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../domain/usecases/diet_calculator.dart';
 import '../providers/diet_generator_provider.dart';
 import 'diet_generator_result_screen.dart';
@@ -21,7 +24,8 @@ class DietGeneratorFormScreen extends ConsumerStatefulWidget {
       _DietGeneratorFormScreenState();
 }
 
-class _DietGeneratorFormScreenState extends ConsumerState<DietGeneratorFormScreen> {
+class _DietGeneratorFormScreenState
+    extends ConsumerState<DietGeneratorFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _ageController = TextEditingController();
   final _weightController = TextEditingController();
@@ -30,6 +34,48 @@ class _DietGeneratorFormScreenState extends ConsumerState<DietGeneratorFormScree
   Sex _sex = Sex.male;
   ActivityLevel _activityLevel = ActivityLevel.moderate;
   DietGoal _goal = DietGoal.maintain;
+  bool _prefilled = false;
+
+  /// Pre-fills from the saved profile + latest body-tracking weight, once,
+  /// so re-entering this screen doesn't silently reset to hardcoded
+  /// defaults (Hombre/Moderado/Mantener) and produce a different result
+  /// than last time without the user noticing.
+  void _maybePrefill(Profile? profile, double? latestWeightKg, bool useLb) {
+    if (_prefilled) return;
+    if (profile == null && latestWeightKg == null) return;
+    _prefilled = true;
+
+    if (profile != null) {
+      if (profile.sex == 'female') _sex = Sex.female;
+      if (profile.heightCm != null) {
+        _heightController.text = _trimZero(profile.heightCm!);
+      }
+      final age = profile.age;
+      if (age != null) _ageController.text = age.toString();
+      for (final a in ActivityLevel.values) {
+        if (a.dbValue == profile.activityLevel) {
+          _activityLevel = a;
+          break;
+        }
+      }
+      for (final g in DietGoal.values) {
+        if (g.dbValue == profile.goal) {
+          _goal = g;
+          break;
+        }
+      }
+    }
+
+    if (latestWeightKg != null) {
+      final display =
+          useLb ? UnitConverter.kgToLb(latestWeightKg) : latestWeightKg;
+      _weightController.text = _trimZero(display);
+    }
+  }
+
+  String _trimZero(double value) => value == value.roundToDouble()
+      ? value.toStringAsFixed(0)
+      : value.toStringAsFixed(1);
 
   @override
   void dispose() {
@@ -63,6 +109,17 @@ class _DietGeneratorFormScreenState extends ConsumerState<DietGeneratorFormScree
   @override
   Widget build(BuildContext context) {
     final useLb = ref.watch(unitPreferenceProvider) == WeightUnit.lb;
+    final profile = ref.watch(profileProvider).valueOrNull;
+    final measurements =
+        ref.watch(bodyMeasurementHistoryProvider).valueOrNull ?? const [];
+    double? latestWeightKg;
+    for (final m in measurements.reversed) {
+      if (m.weightKg != null) {
+        latestWeightKg = m.weightKg;
+        break;
+      }
+    }
+    _maybePrefill(profile, latestWeightKg, useLb);
 
     return Scaffold(
       appBar: AppBar(
@@ -112,7 +169,8 @@ class _DietGeneratorFormScreenState extends ConsumerState<DietGeneratorFormScree
                     child: AppTextField(
                       controller: _weightController,
                       label: useLb ? 'Peso (lb)' : 'Peso (kg)',
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
                       validator: Validators.positiveNumber,
                     ),
                   ),
@@ -122,7 +180,8 @@ class _DietGeneratorFormScreenState extends ConsumerState<DietGeneratorFormScree
               AppTextField(
                 controller: _heightController,
                 label: 'Estatura (cm)',
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 validator: Validators.positiveNumber,
               ),
               const SizedBox(height: AppSizes.lg),
@@ -131,7 +190,8 @@ class _DietGeneratorFormScreenState extends ConsumerState<DietGeneratorFormScree
               DropdownButtonFormField<ActivityLevel>(
                 initialValue: _activityLevel,
                 items: ActivityLevel.values
-                    .map((a) => DropdownMenuItem(value: a, child: Text(a.label)))
+                    .map(
+                        (a) => DropdownMenuItem(value: a, child: Text(a.label)))
                     .toList(),
                 onChanged: (value) => setState(() => _activityLevel = value!),
               ),
